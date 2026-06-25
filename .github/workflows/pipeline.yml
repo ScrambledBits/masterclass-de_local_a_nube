@@ -14,6 +14,12 @@ on:
   push:
     branches:
       - main  # El pipeline se activa solo con cambios en la rama principal
+  workflow_dispatch:
+    inputs:
+      destruir:
+        description: "Escribe 'destruir' para eliminar toda la infraestructura de AWS"
+        required: true
+        default: ""
 
 jobs:
   # ============================================================
@@ -157,3 +163,41 @@ jobs:
           done
           echo "[FAIL] La app no respondio en el tiempo esperado"
           exit 1
+
+  # ============================================================
+  # JOB 3: DESTRUIR INFRAESTRUCTURA (activacion manual)
+  # Uso: Actions -> Run workflow -> escribir "destruir" en el campo
+  # Proposito: evitar costos de AWS cuando el demo ha terminado
+  # ============================================================
+  destruir:
+    name: "Fase 3: Destruir Infraestructura (Manual)"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.destruir == 'destruir'
+
+    steps:
+      - name: Checkout del código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Instalar Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+          terraform_wrapper: false
+
+      - name: Inicializar Terraform (conectar con backend S3)
+        working-directory: terraform/
+        run: terraform init
+
+      - name: Destruir toda la infraestructura
+        working-directory: terraform/
+        run: |
+          echo "=== DESTRUYENDO INFRAESTRUCTURA ==="
+          terraform destroy -auto-approve
+          echo "=== INFRAESTRUCTURA ELIMINADA ==="
