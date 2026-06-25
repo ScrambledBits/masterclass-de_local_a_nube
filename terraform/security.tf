@@ -64,7 +64,7 @@ resource "aws_security_group" "backend" {
 
   # Puerto 22: solo desde el frontend (bastión SSH para Ansible via ProxyJump)
   ingress {
-    description     = "SSH via ProxyJump desde frontend (bastión Ansible)"
+    description     = "SSH via ProxyJump desde frontend (bastion Ansible)"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
