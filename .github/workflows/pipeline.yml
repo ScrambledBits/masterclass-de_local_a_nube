@@ -67,8 +67,8 @@ jobs:
         id: tf_outputs
         working-directory: terraform/
         run: |
-          echo "frontend_ip=$(terraform output -raw frontend_ip)" >> $GITHUB_OUTPUT
-          echo "backend_private_ip=$(terraform output -raw backend_private_ip)" >> $GITHUB_OUTPUT
+          echo "frontend_ip=$(terraform output -raw frontend_ip)" >> "$GITHUB_OUTPUT"
+          echo "backend_private_ip=$(terraform output -raw backend_private_ip)" >> "$GITHUB_OUTPUT"
 
       - name: Mostrar URL final (preview para el equipo)
         run: |
