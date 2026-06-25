@@ -1,0 +1,160 @@
+# Pipeline CI/CD: De 'git push' a producción en AWS.
+# Este archivo es el "Robot" de la masterclass.
+#
+# Arquitectura del pipeline:
+#   Job 1 (infra):  Terraform construye la infraestructura en AWS
+#   Job 2 (config): Ansible configura los servidores (depende de infra)
+#
+# Los dos jobs son secuenciales por diseño: no puedes configurar servidores
+# que todavía no existen. El 'needs: [infra]' en config lo garantiza.
+
+name: "Pipeline CI/CD — Masterclass Terraform + Ansible"
+
+on:
+  push:
+    branches:
+      - main  # El pipeline se activa solo con cambios en la rama principal
+
+jobs:
+  # ============================================================
+  # JOB 1: INFRAESTRUCTURA
+  # Responsabilidad: construir la red, servidores y seguridad en AWS
+  # ============================================================
+  infra:
+    name: "Fase 1: Provisionar Infraestructura (Terraform)"
+    runs-on: ubuntu-latest
+
+    # Los outputs permiten pasar datos entre jobs.
+    # Sin esto, 'config' no sabría a qué IPs conectarse.
+    outputs:
+      frontend_ip:        ${{ steps.tf_outputs.outputs.frontend_ip }}
+      backend_private_ip: ${{ steps.tf_outputs.outputs.backend_private_ip }}
+
+    steps:
+      - name: Checkout del código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Instalar Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+          # terraform_wrapper: false es necesario para capturar outputs
+          # sin el wrapper de HashiCorp que agrega metadata al stdout
+          terraform_wrapper: false
+
+      - name: Inicializar Terraform (conectar con backend S3)
+        working-directory: terraform/
+        run: terraform init
+
+      - name: Planificar cambios de infraestructura
+        working-directory: terraform/
+        run: terraform plan -out=tfplan
+
+      - name: Aplicar infraestructura
+        working-directory: terraform/
+        run: terraform apply -auto-approve tfplan
+        # terraform.tfvars está en .gitignore. Las variables se pasan via TF_VAR_*
+        # La key pair 'masterclass-keypair' tiene un default en variables.tf,
+        # por lo que no requiere variable de entorno aquí.
+
+      - name: Capturar outputs de Terraform como outputs del job
+        id: tf_outputs
+        working-directory: terraform/
+        run: |
+          echo "frontend_ip=$(terraform output -raw frontend_ip)" >> $GITHUB_OUTPUT
+          echo "backend_private_ip=$(terraform output -raw backend_private_ip)" >> $GITHUB_OUTPUT
+
+      - name: Mostrar URL final (preview para el equipo)
+        run: |
+          echo "=== INFRAESTRUCTURA LISTA ==="
+          echo "Frontend IP:        ${{ steps.tf_outputs.outputs.frontend_ip }}"
+          echo "Backend Private IP: ${{ steps.tf_outputs.outputs.backend_private_ip }}"
+          echo "URL de la app:      http://${{ steps.tf_outputs.outputs.frontend_ip }}/"
+
+  # ============================================================
+  # JOB 2: CONFIGURACIÓN
+  # Responsabilidad: configurar los servidores que Terraform creó
+  # ============================================================
+  config:
+    name: "Fase 2: Configurar Servidores (Ansible)"
+    needs: [infra]  # Garantiza que infra terminó exitosamente antes de correr
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código fuente
+        uses: actions/checkout@v4
+
+      - name: Instalar Ansible
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ansible
+
+      - name: Configurar clave SSH para acceso a instancias EC2
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # StrictHostKeyChecking no: las IPs de AWS cambian en cada apply.
+          # En producción real usarías known_hosts dinámico o AWS Systems Manager.
+          cat >> ~/.ssh/config << 'EOF'
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+
+      - name: Crear inventario dinámico desde outputs de Terraform
+        run: |
+          # Este archivo de inventario es el puente entre Terraform y Ansible.
+          # Las IPs vienen de los outputs del job 'infra' via 'needs.infra.outputs'.
+          #
+          # ProxyJump: Ansible se conecta al backend "saltando" por el frontend.
+          # El backend no tiene IP pública — solo es alcanzable internamente.
+          cat > inventory.ini << EOF
+          [frontend]
+          ${{ needs.infra.outputs.frontend_ip }} ansible_user=ubuntu
+
+          [backend]
+          ${{ needs.infra.outputs.backend_private_ip }} ansible_user=ubuntu ansible_ssh_common_args='-o ProxyJump=ubuntu@${{ needs.infra.outputs.frontend_ip }} -o StrictHostKeyChecking=no'
+          EOF
+
+          echo "=== Inventario generado ==="
+          cat inventory.ini
+
+      - name: Esperar a que las instancias EC2 estén listas para SSH
+        run: |
+          # AWS necesita ~30-60 segundos para que cloud-init termine y SSH esté activo.
+          # Sin esta espera, Ansible falla con "Connection refused".
+          echo "Esperando 60 segundos para que las instancias inicialicen..."
+          sleep 60
+
+      - name: Ejecutar playbook de Ansible
+        run: |
+          ansible-playbook \
+            --inventory inventory.ini \
+            --private-key ~/.ssh/id_rsa \
+            --extra-vars "backend_private_ip=${{ needs.infra.outputs.backend_private_ip }}" \
+            ansible/playbook.yml
+
+      - name: Verificar que la app responde correctamente
+        run: |
+          echo "=== VERIFICACIÓN FINAL ==="
+          # Esperamos hasta 2 minutos para que Nginx esté listo
+          for i in {1..12}; do
+            if curl -s -o /dev/null -w "%{http_code}" \
+                http://${{ needs.infra.outputs.frontend_ip }}/ | grep -q "200"; then
+              echo "✅ App respondiendo en http://${{ needs.infra.outputs.frontend_ip }}/"
+              curl -s http://${{ needs.infra.outputs.frontend_ip }}/ | python3 -m json.tool
+              exit 0
+            fi
+            echo "Intento $i/12 — esperando 10 segundos..."
+            sleep 10
+          done
+          echo "❌ La app no respondió en el tiempo esperado"
+          exit 1
