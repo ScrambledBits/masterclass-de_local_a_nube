@@ -15,7 +15,7 @@ resource "aws_instance" "frontend" {
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 8  # GB — suficiente para Ubuntu + Nginx
+    volume_size = 8  # GB (suficiente para Ubuntu + Nginx)
     volume_type = "gp3"
   }
 

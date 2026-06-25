@@ -8,7 +8,7 @@
 # Los dos jobs son secuenciales por diseño: no puedes configurar servidores
 # que todavía no existen. El 'needs: [infra]' en config lo garantiza.
 
-name: "Pipeline CI/CD — Masterclass Terraform + Ansible"
+name: "Pipeline CI/CD: Masterclass Terraform + Ansible"
 
 on:
   push:
@@ -60,9 +60,8 @@ jobs:
       - name: Aplicar infraestructura
         working-directory: terraform/
         run: terraform apply -auto-approve tfplan
-        # terraform.tfvars está en .gitignore. Las variables se pasan via TF_VAR_*
-        # La key pair 'masterclass-keypair' tiene un default en variables.tf,
-        # por lo que no requiere variable de entorno aquí.
+        # Todas las variables tienen valores por defecto en variables.tf.
+        # No se requieren TF_VAR_* ni terraform.tfvars para este despliegue.
 
       - name: Capturar outputs de Terraform como outputs del job
         id: tf_outputs
@@ -115,7 +114,7 @@ jobs:
           # Las IPs vienen de los outputs del job 'infra' via 'needs.infra.outputs'.
           #
           # ProxyJump: Ansible se conecta al backend "saltando" por el frontend.
-          # El backend no tiene IP pública — solo es alcanzable internamente.
+          # El backend no tiene IP publica, solo es alcanzable internamente.
           cat > inventory.ini << EOF
           [frontend]
           ${{ needs.infra.outputs.frontend_ip }} ansible_user=ubuntu
@@ -149,12 +148,12 @@ jobs:
           for i in {1..12}; do
             if curl -s -o /dev/null -w "%{http_code}" \
                 http://${{ needs.infra.outputs.frontend_ip }}/ | grep -q "200"; then
-              echo "✅ App respondiendo en http://${{ needs.infra.outputs.frontend_ip }}/"
+              echo "[OK] App respondiendo en http://${{ needs.infra.outputs.frontend_ip }}/"
               curl -s http://${{ needs.infra.outputs.frontend_ip }}/ | python3 -m json.tool
               exit 0
             fi
-            echo "Intento $i/12 — esperando 10 segundos..."
+            echo "Intento $i/12: esperando 10 segundos..."
             sleep 10
           done
-          echo "❌ La app no respondió en el tiempo esperado"
+          echo "[FAIL] La app no respondio en el tiempo esperado"
           exit 1

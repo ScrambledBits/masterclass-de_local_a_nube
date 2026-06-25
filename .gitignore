@@ -1,4 +1,4 @@
-# Claves SSH y secretos — jamás deben llegar al repositorio
+# Claves SSH y secretos (jamas deben llegar al repositorio)
 *.pem
 *.ppk
 .env

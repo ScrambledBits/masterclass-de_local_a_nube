@@ -5,7 +5,7 @@
 # Las variables entre {{ }} son reemplazadas por Ansible desde group_vars/all.yml.
 
 [Unit]
-Description=Backend App FastAPI/uvicorn — Masterclass CI/CD
+Description=Backend App FastAPI/uvicorn, Masterclass CI/CD
 # Esperar a que la red esté disponible antes de iniciar
 After=network.target
 
@@ -13,7 +13,7 @@ After=network.target
 Type=simple
 User={{ app_user }}
 WorkingDirectory={{ app_dir }}
-# Usamos el uvicorn del venv, no el del sistema — consistencia garantizada
+# Usamos el uvicorn del venv, no el del sistema (consistencia garantizada)
 ExecStart={{ app_dir }}/venv/bin/uvicorn main:app --host 0.0.0.0 --port {{ app_port }}
 # Reinicio automático tras 3 segundos en caso de fallo
 Restart=always

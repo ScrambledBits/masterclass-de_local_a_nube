@@ -1,6 +1,6 @@
 ---
 # Rol 'frontend': instala Nginx y lo configura como proxy inverso.
-# Nginx actúa como la "cara pública" — el único punto de entrada
+# Nginx actúa como la "cara pública" (el unico punto de entrada)
 # que los usuarios ven. Todo el resto de la arquitectura queda oculto.
 
 - name: Instalar Nginx

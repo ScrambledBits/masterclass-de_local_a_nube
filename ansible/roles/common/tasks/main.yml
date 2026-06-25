@@ -1,7 +1,7 @@
 ---
 # Rol 'common': base mínima para todos los servidores.
 # Este rol corre primero en TODOS los hosts, tanto frontend como backend.
-# Principio: no asumir nada del estado del servidor — preparar la base.
+# Principio: no asumir nada del estado del servidor (preparar la base).
 
 - name: Actualizar caché de paquetes apt
   apt:

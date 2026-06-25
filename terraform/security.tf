@@ -10,7 +10,7 @@ resource "aws_security_group" "frontend" {
   description = "SG para Nginx: permite trafico web publico y SSH desde runners de CI/CD"
   vpc_id      = aws_vpc.principal.id
 
-  # Puerto 80: tráfico HTTP público — aquí llegan los usuarios
+  # Puerto 80: tráfico HTTP público (aqui llegan los usuarios)
   ingress {
     description = "HTTP publico"
     from_port   = 80

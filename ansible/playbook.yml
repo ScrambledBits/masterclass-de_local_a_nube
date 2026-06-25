@@ -2,7 +2,7 @@
 # Playbook principal: orquesta la configuración de toda la infraestructura.
 #
 # El orden de ejecución no es arbitrario:
-#   1. common (todos): base del sistema — prereq para backend y frontend
+#   1. common (todos): base del sistema (prereq para backend y frontend)
 #   2. backend: desplegamos la app ANTES de configurar Nginx,
 #      porque Nginx necesita que el backend esté listo para recibir tráfico
 #   3. frontend: Nginx se configura al final, cuando ya tiene a quién redirigir

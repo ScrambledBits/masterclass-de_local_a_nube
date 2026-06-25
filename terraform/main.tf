@@ -50,7 +50,7 @@ resource "aws_subnet" "privada" {
   vpc_id            = aws_vpc.principal.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "${var.aws_region}a"
-  # map_public_ip_on_launch = false es el default — explícito aquí con propósito pedagógico
+  # map_public_ip_on_launch = false es el default (explicito aqui con proposito pedagogico)
 
   tags = {
     Name     = "${var.proyecto}-subnet-privada"
