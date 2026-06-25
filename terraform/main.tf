@@ -88,6 +88,46 @@ resource "aws_route_table_association" "publica" {
   route_table_id = aws_route_table.publica.id
 }
 
-# La subred privada NO tiene route table propia aquí.
-# Usa el route table principal de la VPC, que no tiene ruta al IGW.
-# Esto es lo que la hace "privada": simplemente no hay camino al internet.
+# NAT Gateway: permite que la subred privada salga al internet (para apt, pip)
+# SIN exponer el backend directamente. El trafico sale via la IP del NAT, no del EC2.
+# La subred privada sigue siendo inaccesible desde internet hacia adentro.
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = {
+    Name     = "${var.proyecto}-eip-nat"
+    Proyecto = var.proyecto
+  }
+}
+
+resource "aws_nat_gateway" "principal" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.publica.id
+
+  tags = {
+    Name     = "${var.proyecto}-nat"
+    Proyecto = var.proyecto
+  }
+
+  depends_on = [aws_internet_gateway.principal]
+}
+
+# Route Table para la subred privada: salida al internet via NAT Gateway
+resource "aws_route_table" "privada" {
+  vpc_id = aws_vpc.principal.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.principal.id
+  }
+
+  tags = {
+    Name     = "${var.proyecto}-rt-privada"
+    Proyecto = var.proyecto
+  }
+}
+
+resource "aws_route_table_association" "privada" {
+  subnet_id      = aws_subnet.privada.id
+  route_table_id = aws_route_table.privada.id
+}
