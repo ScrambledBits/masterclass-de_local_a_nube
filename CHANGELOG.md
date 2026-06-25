@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0] - 2026-06-25
+
+### Added
+- Diagramas de arquitectura en formato tldraw (.tldr) y PNG:
+  - `diagrams/pipeline_flow.png`: flujo CI/CD en layout horizontal (dos filas)
+  - `diagrams/cloud_interior.png`: red interior AWS en layout horizontal
+- Dos nuevos slides en la presentacion (ahora 11 slides):
+  - Slide 7: "Flujo del Pipeline CI/CD" con diagrama de pipeline
+  - Slide 8: "Red Interior AWS" con diagrama de red
+- README.md actualizado con imagenes de los diagramas
+
+### Removed
+- Diagramas Excalidraw obsoletos (sustituidos por tldraw)
+
 ## [1.1.0] - 2026-06-25
 
 ### Added

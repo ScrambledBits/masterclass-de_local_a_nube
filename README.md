@@ -5,17 +5,15 @@
 
 ## Arquitectura
 
-```
-Internet
-    |  Puerto 80
-Nginx (EC2 Subred Publica)        <-- IP publica, accesible desde internet
-    |  proxy_pass :5000
-FastAPI (EC2 Subred Privada)      <-- sin IP publica, invisible desde internet
-    |  apt, pip
-NAT Gateway (Subred Publica)      <-- salida a internet para la subred privada
-    |
-Internet Gateway --> Internet
-```
+### Flujo del Pipeline CI/CD
+
+![Flujo del Pipeline CI/CD](diagrams/pipeline_flow.png)
+
+`git push` dispara GitHub Actions, que ejecuta Terraform (infra) y luego Ansible (config).
+
+### Red Interior AWS
+
+![Red Interior AWS](diagrams/cloud_interior.png)
 
 El backend **no tiene IP publica**. Solo Nginx puede hablarle en el puerto 5000.
 La subred privada accede a internet (para `apt`, `pip`) a traves del NAT Gateway,
@@ -82,8 +80,13 @@ terraform/
   security.tf                    # SGs: frontend (80/22 publico) + backend (5000/22 via SG)
   compute.tf                     # EC2 frontend (IP publica) + backend (IP privada)
   outputs.tf                     # frontend_ip, backend_private_ip, URLs
+diagrams/
+  pipeline_flow.tldr              # Fuente del diagrama (tldraw)
+  pipeline_flow.png               # Flujo CI/CD: git push → GitHub Actions → AWS
+  cloud_interior.tldr             # Fuente del diagrama (tldraw)
+  cloud_interior.png              # Red interior AWS: Internet → Nginx → FastAPI
 presentation/
-  final_presentation.pptx        # 10 slides, identidad visual Bootcamperu
+  final_presentation.pptx        # 11 slides, identidad visual Bootcamperu
 ```
 
 ## Ejecutar el Pipeline en AWS
