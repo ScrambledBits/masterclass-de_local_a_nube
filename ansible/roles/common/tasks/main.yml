@@ -1,0 +1,19 @@
+---
+# Rol 'common': base mínima para todos los servidores.
+# Este rol corre primero en TODOS los hosts, tanto frontend como backend.
+# Principio: no asumir nada del estado del servidor — preparar la base.
+
+- name: Actualizar caché de paquetes apt
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600  # Evita actualizar si el caché tiene menos de 1 hora
+  become: yes
+
+- name: Instalar dependencias base del sistema
+  apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv  # Necesario para crear entornos virtuales Python aislados
+    state: present
+  become: yes

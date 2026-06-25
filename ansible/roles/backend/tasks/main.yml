@@ -1,0 +1,46 @@
+---
+# Rol 'backend': despliega la app FastAPI como servicio systemd.
+# El orden de las tareas importa: crear directorio → copiar código →
+# instalar dependencias → registrar servicio → iniciar.
+
+- name: Crear directorio de la aplicación
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: '0755'
+  become: yes
+
+- name: Copiar código fuente de la app al servidor
+  copy:
+    src: "{{ playbook_dir }}/../app/"
+    dest: "{{ app_dir }}/"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+  become: yes
+
+- name: Instalar dependencias Python en entorno virtual aislado
+  pip:
+    requirements: "{{ app_dir }}/requirements.txt"
+    virtualenv: "{{ app_dir }}/venv"
+    virtualenv_command: python3 -m venv
+  become: yes
+  # El venv aísla las dependencias de la app del Python del sistema.
+  # Sin esto, una actualización del sistema podría romper la app silenciosamente.
+
+- name: Desplegar unidad systemd para la aplicación
+  template:
+    src: flask_app.service.j2
+    dest: /etc/systemd/system/backend_app.service
+    mode: '0644'
+  become: yes
+  notify: Reiniciar backend_app
+
+- name: Habilitar e iniciar el servicio backend_app
+  systemd:
+    name: backend_app
+    enabled: yes    # Sobrevive reinicios del servidor
+    state: started
+    daemon_reload: yes
+  become: yes

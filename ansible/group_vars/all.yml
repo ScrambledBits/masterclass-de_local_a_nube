@@ -1,0 +1,12 @@
+---
+# Puerto donde escucha la aplicación FastAPI en el servidor backend.
+# Este valor se usa en dos lugares: en el service systemd (ExecStart) y
+# en la plantilla de Nginx (proxy_pass). Cambiarlo aquí actualiza ambos.
+app_port: 5000
+
+# Directorio de instalación de la app en el servidor remoto.
+app_dir: /opt/backend_app
+
+# Usuario del sistema operativo bajo el cual corre la aplicación.
+# Ubuntu 22.04 crea el usuario 'ubuntu' por defecto en instancias EC2.
+app_user: ubuntu

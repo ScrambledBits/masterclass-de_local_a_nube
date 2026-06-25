@@ -1,0 +1,25 @@
+# Configuración de Nginx como proxy inverso.
+# Esta plantilla Jinja2 materializa el diagrama de arquitectura:
+#   Internet → Nginx (Puerto 80) → App Python (Puerto 5000, subred privada)
+#
+# La variable 'backend_private_ip' es inyectada por Ansible via --extra-vars
+# desde los outputs de Terraform. Este es el punto de integración entre
+# la capa de infraestructura (Terraform) y la capa de configuración (Ansible).
+
+server {
+    listen 80;
+    server_name _;  # '_' acepta cualquier nombre de host — válido para IP directa
+
+    location / {
+        # proxy_pass redirige las peticiones al backend en la subred privada.
+        # El usuario no puede llegar directamente a :5000 — solo Nginx puede.
+        proxy_pass http://{{ backend_private_ip }}:{{ app_port }};
+
+        # Headers que permiten al backend conocer la IP real del usuario
+        # y el protocolo original (aunque llegue via proxy).
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -1,0 +1,40 @@
+---
+# Rol 'frontend': instala Nginx y lo configura como proxy inverso.
+# Nginx actúa como la "cara pública" — el único punto de entrada
+# que los usuarios ven. Todo el resto de la arquitectura queda oculto.
+
+- name: Instalar Nginx
+  apt:
+    name: nginx
+    state: present
+  become: yes
+
+- name: Desplegar configuración de Nginx como proxy inverso
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/backend_proxy
+    mode: '0644'
+  become: yes
+  notify: Recargar Nginx
+
+- name: Habilitar el sitio en Nginx
+  file:
+    src: /etc/nginx/sites-available/backend_proxy
+    dest: /etc/nginx/sites-enabled/backend_proxy
+    state: link
+  become: yes
+  notify: Recargar Nginx
+
+- name: Eliminar sitio por defecto de Nginx (evitar conflictos en puerto 80)
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: yes
+  notify: Recargar Nginx
+
+- name: Iniciar y habilitar Nginx
+  systemd:
+    name: nginx
+    enabled: yes
+    state: started
+  become: yes

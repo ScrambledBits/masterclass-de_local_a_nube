@@ -1,0 +1,9 @@
+---
+# Los handlers solo se ejecutan si alguna tarea los notificó (notify:).
+# Esto evita reinicios innecesarios del servicio en cada ejecución del playbook.
+
+- name: Reiniciar backend_app
+  systemd:
+    name: backend_app
+    state: restarted
+  become: yes
