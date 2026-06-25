@@ -1,0 +1,30 @@
+# Claves SSH y secretos — jamás deben llegar al repositorio
+*.pem
+*.ppk
+.env
+.env.*
+
+# Estado de Terraform
+# CRÍTICO: tfstate contiene IPs, IDs de recursos y potencialmente valores sensibles.
+# El backend S3 es la fuente de verdad; el archivo local es ruido peligroso.
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+terraform.tfvars.json
+
+# Archivos temporales de la presentación
+# slides_outline.md es un archivo de trabajo, no un entregable
+presentation/tmp/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# macOS / IDE
+.DS_Store
+.idea/
+.vscode/
