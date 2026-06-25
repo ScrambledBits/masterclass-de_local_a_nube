@@ -160,7 +160,7 @@
         "start": {"type": "binding", "boundShapeId": "shape:s4", "normalizedAnchor": {"x": 0.5, "y": 1}, "isExact": false},
         "end": {"type": "binding", "boundShapeId": "shape:s7", "normalizedAnchor": {"x": 0.5, "y": 0}, "isExact": false},
         "arrowheadStart": "none", "arrowheadEnd": "arrow",
-        "text": "proxy :5000", "font": "draw"
+        "text": "reenvio :5000", "font": "draw"
       }
     },
 
