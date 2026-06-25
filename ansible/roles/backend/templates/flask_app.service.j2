@@ -2,7 +2,7 @@
 # systemd es el estándar en Linux moderno para gestionar procesos como servicios:
 # auto-inicio con el sistema, reinicio ante fallos, logs centralizados en journald.
 #
-# Las variables entre {{ }} son reemplazadas por Ansible desde group_vars/all.yml.
+# Las variables Jinja2 son reemplazadas por Ansible desde group_vars/all.yml.
 
 [Unit]
 Description=Backend App FastAPI/uvicorn, Masterclass CI/CD
