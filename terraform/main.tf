@@ -1,8 +1,9 @@
 # ============================================================
-# RED: VPC, Subnets, Internet Gateway, Route Tables
+# RED: VPC, Subnets, Internet Gateway, NAT Gateway, Route Tables
 # ============================================================
-# Analogía: La VPC es el edificio. Las subnets son los pisos.
-# La pública tiene ventanas (IGW). La privada no tiene salida directa.
+# La VPC es el edificio. Las subnets son los pisos.
+# La publica tiene ventanas al internet (IGW).
+# La privada sale al internet via NAT (para apt/pip) pero no recibe trafico entrante.
 
 # Buscamos la AMI más reciente de Ubuntu 22.04 LTS de forma dinámica.
 # Hardcodear un AMI ID es un error común: cambia por región y se deprecan.
@@ -45,7 +46,7 @@ resource "aws_subnet" "publica" {
   }
 }
 
-# Subred privada: aquí vive la app Python. Sin salida directa al internet.
+# Subred privada: aquí vive la app Python. Sale al internet via NAT Gateway, no via IGW.
 resource "aws_subnet" "privada" {
   vpc_id            = aws_vpc.principal.id
   cidr_block        = "10.0.2.0/24"

@@ -2,11 +2,13 @@
 # Este archivo es el "Robot" de la masterclass.
 #
 # Arquitectura del pipeline:
-#   Job 1 (infra):  Terraform construye la infraestructura en AWS
-#   Job 2 (config): Ansible configura los servidores (depende de infra)
+#   Job 1 (infra):    Terraform construye la infraestructura en AWS
+#   Job 2 (config):   Ansible configura los servidores (depende de infra)
+#   Job 3 (destruir): Elimina toda la infraestructura (solo activacion manual)
 #
-# Los dos jobs son secuenciales por diseño: no puedes configurar servidores
-# que todavía no existen. El 'needs: [infra]' en config lo garantiza.
+# Los jobs infra y config son secuenciales: no puedes configurar servidores
+# que todavia no existen. El 'needs: [infra]' en config lo garantiza.
+# El job destruir se activa via workflow_dispatch escribiendo "destruir".
 
 name: "Pipeline CI/CD: Masterclass Terraform + Ansible"
 
