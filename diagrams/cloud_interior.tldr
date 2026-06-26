@@ -120,7 +120,7 @@
         "start": {"type": "binding", "boundShapeId": "shape:s1", "normalizedAnchor": {"x": 1, "y": 0.5}, "isExact": false},
         "end": {"type": "binding", "boundShapeId": "shape:s2", "normalizedAnchor": {"x": 0, "y": 0.5}, "isExact": false},
         "arrowheadStart": "none", "arrowheadEnd": "arrow",
-        "text": ":80 entrante", "font": "draw"
+        "text": ":80", "font": "draw"
       }
     },
 
