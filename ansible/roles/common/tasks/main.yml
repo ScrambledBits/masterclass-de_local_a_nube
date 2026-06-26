@@ -13,7 +13,5 @@
   apt:
     name:
       - python3
-      - python3-pip
-      - python3-venv  # Necesario para crear entornos virtuales Python aislados
     state: present
   become: yes

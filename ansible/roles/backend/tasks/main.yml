@@ -20,6 +20,14 @@
     group: "{{ app_user }}"
   become: yes
 
+- name: Instalar herramientas Python para el entorno virtual
+  apt:
+    name:
+      - python3-pip
+      - python3-venv
+    state: present
+  become: yes
+
 - name: Instalar dependencias Python en entorno virtual aislado
   pip:
     requirements: "{{ app_dir }}/requirements.txt"
