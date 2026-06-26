@@ -9,11 +9,6 @@ resource "aws_instance" "frontend" {
   vpc_security_group_ids      = [aws_security_group.frontend.id]
   key_name                    = var.ssh_key_name
 
-  # associate_public_ip_address es true por defecto en subnet pública,
-  # pero lo explicamos explícitamente: esta instancia DEBE tener IP pública
-  # para que Nginx sea accesible y para que Ansible pueda conectarse via SSH.
-  associate_public_ip_address = true
-
   root_block_device {
     volume_size = 8  # GB (suficiente para Ubuntu + Nginx)
     volume_type = "gp3"
