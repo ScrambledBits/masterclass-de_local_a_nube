@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Masterclass CI/CD: Bootcamperu</title>
+  <style>
+    :root {
+      --teal:    #0F766E;
+      --orange:  #C2410C;
+      --text:    #0F172A;
+      --surface: #F8FAFC;
+      --muted:   #94A3B8;
+      --border:  #E2E8F0;
+      --green:   #15803D;
+      --red:     #B91C1C;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--teal);
+      color: #fff;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: #fff;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-b {
+      font-family: Cambria, Georgia, serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .logo-c {
+      font-family: Cambria, Georgia, serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    header h1 {
+      font-family: Cambria, Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    header p {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      margin-top: 0.2rem;
+    }
+
+    main {
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .flow-banner {
+      background: var(--text);
+      color: #fff;
+      border-radius: 10px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .flow-banner .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .flow-banner .step .label {
+      background: rgba(255,255,255,0.12);
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+    }
+    .flow-banner .step .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .flow-banner .arrow {
+      color: var(--teal);
+      font-size: 1.25rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 580px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .card-icon.teal   { background: #CCFBF1; }
+    .card-icon.orange { background: #FFEDD5; }
+    .card-title {
+      font-family: Cambria, Georgia, serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .card-endpoint {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--muted);
+      font-family: 'Courier New', monospace;
+      background: var(--surface);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+    }
+    .status-chip.ok      { background: #DCFCE7; color: var(--green); }
+    .status-chip.error   { background: #FEE2E2; color: var(--red); }
+    .status-chip.loading { background: #F1F5F9; color: var(--muted); }
+    .status-chip.idle    { background: #F1F5F9; color: #64748B; }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .dot.pulse {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dot.pulse { animation: none; }
+    }
+
+    .response-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: var(--text);
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      min-height: 3.5rem;
+      line-height: 1.5;
+    }
+    .response-block.empty { color: var(--muted); font-style: italic; }
+
+    .btn-refresh {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #fff;
+      transition: opacity 0.15s;
+    }
+    .btn-refresh:hover { opacity: 0.75; }
+    .btn-refresh.teal   { border: 1.5px solid var(--teal);   color: var(--teal); }
+    .btn-refresh.orange { border: 1.5px solid var(--orange); color: var(--orange); }
+
+    .action-row {
+      display: flex;
+      justify-content: center;
+    }
+    .btn-main {
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 2rem;
+      font-family: Cambria, Georgia, serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: opacity 0.15s;
+    }
+    .btn-main:hover { opacity: 0.88; }
+
+    button:focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 3px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer strong { color: var(--teal); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <span class="logo-b">B</span>
+      <span class="logo-c">C</span>
+    </div>
+    <div>
+      <h1>Masterclass CI/CD: De Local a la Nube</h1>
+      <p>Demo en vivo | Bootcamperu &nbsp;|&nbsp; Terraform + Ansible + GitHub Actions</p>
+    </div>
+  </header>
+
+  <main>
+
+    <div class="flow-banner" aria-label="Flujo de red">
+      <div class="step">
+        <span class="label">Internet</span>
+        <span class="sub">usuario</span>
+      </div>
+      <span class="arrow">&#8594;</span>
+      <div class="step">
+        <span class="label">Nginx :80</span>
+        <span class="sub">subred publica</span>
+      </div>
+      <span class="arrow">&#8594;</span>
+      <div class="step">
+        <span class="label">FastAPI :5000</span>
+        <span class="sub">subred privada</span>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-main">
+        &#9654; Probar el Pipeline
+      </button>
+    </div>
+
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon teal">&#128640;</div>
+          <div>
+            <div class="card-title">Estado del Pipeline</div>
+            <span class="card-endpoint">GET /api/</span>
+          </div>
+        </div>
+        <div id="chip-raiz" class="status-chip idle" role="status" aria-live="polite" aria-atomic="true">
+          <span class="dot"></span> Sin consultar
+        </div>
+        <div id="response-raiz" class="response-block empty" aria-live="polite">Presiona "Probar el Pipeline"</div>
+        <button id="btn-refresh-raiz" class="btn-refresh teal">&#8635; Actualizar</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon orange">&#10084;</div>
+          <div>
+            <div class="card-title">Health Check</div>
+            <span class="card-endpoint">GET /api/health</span>
+          </div>
+        </div>
+        <div id="chip-health" class="status-chip idle" role="status" aria-live="polite" aria-atomic="true">
+          <span class="dot"></span> Sin consultar
+        </div>
+        <div id="response-health" class="response-block empty" aria-live="polite">Presiona "Probar el Pipeline"</div>
+        <button id="btn-refresh-health" class="btn-refresh orange">&#8635; Actualizar</button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer>
+    Frontend estatico servido por <strong>Nginx</strong> &nbsp;|&nbsp;
+    Backend <strong>FastAPI</strong> en subred privada &nbsp;|&nbsp;
+    Desplegado con <strong>Terraform + Ansible</strong>
+  </footer>
+
+  <script>
+    function setChip(id, state, text) {
+      const el = document.getElementById(id);
+      el.className = 'status-chip ' + state;
+      el.innerHTML = state === 'loading'
+        ? '<span class="dot pulse"></span> ' + text
+        : '<span class="dot"></span> ' + text;
+    }
+
+    function setResponse(id, text, isEmpty) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'response-block' + (isEmpty ? ' empty' : '');
+    }
+
+    async function fetchRaiz() {
+      setChip('chip-raiz', 'loading', 'Consultando...');
+      setResponse('response-raiz', 'Cargando...', true);
+      try {
+        const res = await fetch('/api/');
+        const data = await res.json();
+        setChip('chip-raiz', 'ok', data.estado || 'ok');
+        setResponse('response-raiz', JSON.stringify(data, null, 2), false);
+      } catch (err) {
+        setChip('chip-raiz', 'error', 'Error de conexion');
+        setResponse('response-raiz', "No se pudo conectar al backend.\n¿Está corriendo 'docker compose up --build'?", false);
+      }
+    }
+
+    async function fetchHealth() {
+      setChip('chip-health', 'loading', 'Consultando...');
+      setResponse('response-health', 'Cargando...', true);
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        setChip('chip-health', 'ok', data.estado || 'ok');
+        setResponse('response-health', JSON.stringify(data, null, 2), false);
+      } catch (err) {
+        setChip('chip-health', 'error', 'Error de conexion');
+        setResponse('response-health', "No se pudo conectar al backend.\n¿Está corriendo 'docker compose up --build'?", false);
+      }
+    }
+
+    function refreshAll() {
+      fetchRaiz();
+      fetchHealth();
+    }
+
+    document.querySelector('.btn-main').addEventListener('click', refreshAll);
+    document.getElementById('btn-refresh-raiz').addEventListener('click', fetchRaiz);
+    document.getElementById('btn-refresh-health').addEventListener('click', fetchHealth);
+  </script>
+
+</body>
+</html>

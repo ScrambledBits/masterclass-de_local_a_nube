@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.4.0] - 2026-06-25
+
+### Fixed
+- `terraform/security.tf`: `to_port = 8080` en el SG del frontend corregido a `to_port = 80`
+- `terraform/security.tf`: eliminado `cidr_blocks = ["0.0.0.0/0"]` del ingress SSH del backend;
+  el puerto 22 del backend queda restringido SOLO al SG del frontend (workaround revertido)
+- `.github/workflows/pipeline.yml`: reemplazado `ansible_ssh_common_args` con ProxyJump en
+  `~/.ssh/config` — corrige el error "UNKNOWN port 65535" de OpenSSH con ControlMaster
+  cuando ProxyJump se pasa via args en lugar de configuracion SSH
+- `.github/workflows/pipeline.yml`: actualizados actions a ultimas versiones con soporte Node 24:
+  `actions/checkout` v4→v7, `aws-actions/configure-aws-credentials` v4→v6,
+  `hashicorp/setup-terraform` v3→v4
+
+## [1.3.0] - 2026-06-25
+
+### Added
+- Frontend estatico (`frontend/index.html`) con sistema de diseno Bootcamperu:
+  - Colores: teal-700 (#0F766E) y orange-700 (#C2410C)
+  - Fuentes: Cambria (titulos) y Calibri (cuerpo)
+  - Banner de flujo de red: Internet → Nginx :80 → FastAPI :5000
+  - Dos tarjetas con estado en tiempo real via `fetch` JS:
+    - `GET /api/` → Estado del Pipeline
+    - `GET /api/health` → Health Check
+  - Auto-carga al abrir la pagina; boton "Probar el Pipeline" y actualizacion individual
+
+### Changed
+- `docker/nginx.conf`: agrega `root` y `try_files` para servir archivos estaticos;
+  nueva ruta `location /api/` que hace proxy al backend (sin prefijo `/api/`)
+- `docker-compose.yml`: monta `./frontend` en `/usr/share/nginx/html` del contenedor nginx
+- `README.md`: instrucciones de demo local actualizadas con la nueva URL y descripcion del frontend
+
 ## [1.2.0] - 2026-06-25
 
 ### Added

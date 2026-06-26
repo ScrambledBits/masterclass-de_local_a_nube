@@ -44,17 +44,17 @@ jobs:
 
     steps:
       - name: Checkout del código fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configurar credenciales AWS
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            us-east-1
 
       - name: Instalar Terraform CLI
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.8.0"
           # terraform_wrapper: false es necesario para capturar outputs
@@ -100,40 +100,58 @@ jobs:
 
     steps:
       - name: Checkout del código fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Instalar Ansible
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ansible
 
-      - name: Configurar clave SSH para acceso a instancias EC2
+      - name: Configurar clave SSH y ProxyJump para acceso a instancias EC2
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # StrictHostKeyChecking no: las IPs de AWS cambian en cada apply.
-          # En producción real usarías known_hosts dinámico o AWS Systems Manager.
-          cat >> ~/.ssh/config << 'EOF'
-          Host *
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
-          EOF
+          # ProxyJump via ~/.ssh/config es mas confiable que ansible_ssh_common_args.
+          # Con ansible_ssh_common_args, OpenSSH moderno falla con "UNKNOWN port 65535":
+          # ControlMaster no puede resolver el host a traves del salto y usa un
+          # socket con nombre invalido. Con Host especifico en config, OpenSSH maneja
+          # el ProxyJump en su flujo normal sin conflicto con ControlMaster.
+          # GitHub Actions expande ${{ }} ANTES de ejecutar el shell, por lo que
+          # el heredoc recibe las IPs literales — no hay expansion de shell aqui.
+          cat > ~/.ssh/config << EOF
+Host ${{ needs.infra.outputs.frontend_ip }}
+  User ubuntu
+  IdentityFile ~/.ssh/id_rsa
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host ${{ needs.infra.outputs.backend_private_ip }}
+  User ubuntu
+  IdentityFile ~/.ssh/id_rsa
+  ProxyJump ubuntu@${{ needs.infra.outputs.frontend_ip }}
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host *
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+EOF
+          chmod 600 ~/.ssh/config
 
       - name: Crear inventario dinámico desde outputs de Terraform
         run: |
           # Este archivo de inventario es el puente entre Terraform y Ansible.
           # Las IPs vienen de los outputs del job 'infra' via 'needs.infra.outputs'.
-          #
-          # ProxyJump: Ansible se conecta al backend "saltando" por el frontend.
-          # El backend no tiene IP publica, solo es alcanzable internamente.
+          # El ProxyJump ya esta configurado en ~/.ssh/config — no hace falta
+          # ansible_ssh_common_args aqui, lo que evita el bug de OpenSSH + ControlMaster.
           cat > inventory.ini << EOF
-          [frontend]
-          ${{ needs.infra.outputs.frontend_ip }} ansible_user=ubuntu
+[frontend]
+${{ needs.infra.outputs.frontend_ip }} ansible_user=ubuntu
 
-          [backend]
-          ${{ needs.infra.outputs.backend_private_ip }} ansible_user=ubuntu ansible_ssh_common_args='-o ProxyJump=ubuntu@${{ needs.infra.outputs.frontend_ip }} -o StrictHostKeyChecking=no'
-          EOF
+[backend]
+${{ needs.infra.outputs.backend_private_ip }} ansible_user=ubuntu
+EOF
 
           echo "=== Inventario generado ==="
           cat inventory.ini
@@ -155,7 +173,7 @@ jobs:
 
       - name: Verificar que la app responde correctamente
         run: |
-          echo "=== VERIFICACIÓN FINAL ==="
+          echo "=== VERIFICACION FINAL ==="
           # Esperamos hasta 2 minutos para que Nginx esté listo
           for i in {1..12}; do
             if curl -s -o /dev/null -w "%{http_code}" \
@@ -182,17 +200,17 @@ jobs:
 
     steps:
       - name: Checkout del código fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configurar credenciales AWS
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            us-east-1
 
       - name: Instalar Terraform CLI
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.8.0"
           terraform_wrapper: false

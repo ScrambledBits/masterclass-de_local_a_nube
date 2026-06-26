@@ -14,7 +14,7 @@ resource "aws_security_group" "frontend" {
   ingress {
     description = "HTTP publico"
     from_port   = 80
-    to_port     = 8080
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -62,14 +62,15 @@ resource "aws_security_group" "backend" {
     security_groups = [aws_security_group.frontend.id]
   }
 
-  # Puerto 22: solo desde el frontend (bastión SSH para Ansible via ProxyJump)
+  # Puerto 22: SOLO desde el SG del frontend (bastión SSH para Ansible via ProxyJump).
+  # El trafico llega desde la IP privada del EC2 frontend cuando Ansible usa ProxyJump,
+  # y AWS evalua que esa instancia pertenece al SG del frontend — por eso es seguro.
   ingress {
     description     = "SSH via ProxyJump desde frontend (bastion Ansible)"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_security_group.frontend.id]
-    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {

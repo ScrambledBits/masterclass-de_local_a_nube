@@ -21,13 +21,20 @@ sin quedar expuesta al trafico entrante.
 
 ## Demo Local (Docker)
 
-Replica la arquitectura de produccion sin necesidad de AWS:
+Replica la arquitectura de produccion sin necesidad de AWS. Incluye un frontend
+estatico con el sistema de diseno Bootcamperu que se comunica con el backend via JS.
 
 ```bash
 docker compose up --build
 ```
 
-Abre `http://localhost/` en el navegador. Para apagar:
+Abre `http://localhost:8088/` en el navegador. Veras:
+
+- **Frontend estatico** servido por Nginx (HTML/CSS/JS)
+- **Estado del Pipeline**: llama a `GET /api/` y muestra la respuesta JSON
+- **Health Check**: llama a `GET /api/health` y muestra el estado
+
+Para apagar:
 
 ```bash
 docker compose down
@@ -80,6 +87,8 @@ terraform/
   security.tf                    # SGs: frontend (80/22 publico) + backend (5000/22 via SG)
   compute.tf                     # EC2 frontend (IP publica) + backend (IP privada)
   outputs.tf                     # frontend_ip, backend_private_ip, URLs
+frontend/
+  index.html                      # Frontend estatico: diseno Bootcamperu, fetch JS al backend
 diagrams/
   pipeline_flow.tldr              # Fuente del diagrama (tldraw)
   pipeline_flow.png               # Flujo CI/CD: git push → GitHub Actions → AWS
