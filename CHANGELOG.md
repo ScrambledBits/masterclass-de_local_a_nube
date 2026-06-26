@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0] - 2026-06-25
+
+### Removed
+- `terraform/outputs.tf`: outputs de debug `comando_ssh_frontend`, `comando_ssh_backend`,
+  `url_app` eliminados; el pipeline solo consume `frontend_ip` y `backend_private_ip`
+
+### Changed
+- `frontend/index.html`: `fetchRaiz` y `fetchHealth` unificados en `fetchEndpoint(url, chipId, responseId)`
+
 ## [1.4.0] - 2026-06-25
 
 ### Fixed
