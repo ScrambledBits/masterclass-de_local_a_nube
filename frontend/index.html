@@ -368,42 +368,28 @@
       el.className = 'response-block' + (isEmpty ? ' empty' : '');
     }
 
-    async function fetchRaiz() {
-      setChip('chip-raiz', 'loading', 'Consultando...');
-      setResponse('response-raiz', 'Cargando...', true);
+    async function fetchEndpoint(url, chipId, responseId) {
+      setChip(chipId, 'loading', 'Consultando...');
+      setResponse(responseId, 'Cargando...', true);
       try {
-        const res = await fetch('/api/');
+        const res = await fetch(url);
         const data = await res.json();
-        setChip('chip-raiz', 'ok', data.estado || 'ok');
-        setResponse('response-raiz', JSON.stringify(data, null, 2), false);
+        setChip(chipId, 'ok', data.estado || 'ok');
+        setResponse(responseId, JSON.stringify(data, null, 2), false);
       } catch (err) {
-        setChip('chip-raiz', 'error', 'Error de conexion');
-        setResponse('response-raiz', "No se pudo conectar al backend.\n¿Está corriendo 'docker compose up --build'?", false);
-      }
-    }
-
-    async function fetchHealth() {
-      setChip('chip-health', 'loading', 'Consultando...');
-      setResponse('response-health', 'Cargando...', true);
-      try {
-        const res = await fetch('/api/health');
-        const data = await res.json();
-        setChip('chip-health', 'ok', data.estado || 'ok');
-        setResponse('response-health', JSON.stringify(data, null, 2), false);
-      } catch (err) {
-        setChip('chip-health', 'error', 'Error de conexion');
-        setResponse('response-health', "No se pudo conectar al backend.\n¿Está corriendo 'docker compose up --build'?", false);
+        setChip(chipId, 'error', 'Error de conexion');
+        setResponse(responseId, "No se pudo conectar al backend.\n¿Está corriendo 'docker compose up --build'?", false);
       }
     }
 
     function refreshAll() {
-      fetchRaiz();
-      fetchHealth();
+      fetchEndpoint('/api/', 'chip-raiz', 'response-raiz');
+      fetchEndpoint('/api/health', 'chip-health', 'response-health');
     }
 
     document.querySelector('.btn-main').addEventListener('click', refreshAll);
-    document.getElementById('btn-refresh-raiz').addEventListener('click', fetchRaiz);
-    document.getElementById('btn-refresh-health').addEventListener('click', fetchHealth);
+    document.getElementById('btn-refresh-raiz').addEventListener('click', () => fetchEndpoint('/api/', 'chip-raiz', 'response-raiz'));
+    document.getElementById('btn-refresh-health').addEventListener('click', () => fetchEndpoint('/api/health', 'chip-health', 'response-health'));
   </script>
 
 </body>
