@@ -69,6 +69,7 @@ resource "aws_security_group" "backend" {
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_security_group.frontend.id]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
