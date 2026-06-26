@@ -11,17 +11,3 @@ output "backend_private_ip" {
   value       = aws_instance.backend.private_ip
 }
 
-output "comando_ssh_frontend" {
-  description = "Comando SSH directo al frontend (para debugging manual)"
-  value       = "ssh -i masterclass-keypair.pem ubuntu@${aws_instance.frontend.public_ip}"
-}
-
-output "comando_ssh_backend" {
-  description = "Comando SSH al backend via ProxyJump por el frontend (para debugging manual)"
-  value       = "ssh -i masterclass-keypair.pem -J ubuntu@${aws_instance.frontend.public_ip} ubuntu@${aws_instance.backend.private_ip}"
-}
-
-output "url_app" {
-  description = "URL final de la aplicación"
-  value       = "http://${aws_instance.frontend.public_ip}/"
-}
