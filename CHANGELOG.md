@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.6.0] - 2026-06-25
+
+### Changed
+- `ansible/roles/common/tasks/main.yml`: `python3-pip` y `python3-venv` removidos del rol
+  comun; el frontend EC2 solo corre Nginx y no los necesita
+- `ansible/roles/backend/tasks/main.yml`: nueva tarea apt instala `python3-pip` y
+  `python3-venv` en el host backend antes del paso `pip install`
+- `frontend/index.html`: reglas CSS `.logo-b`/`.logo-c` deduplicadas con selector compartido
+- `terraform/compute.tf`: campo `associate_public_ip_address = true` eliminado del frontend
+  EC2 (la subnet publica ya tiene `map_public_ip_on_launch = true`)
+
 ## [1.5.0] - 2026-06-25
 
 ### Removed
