@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0] - 2026-06-25
+
+### Fixed
+- `.github/workflows/pipeline.yml`: step "Verificar que la app responde correctamente"
+  ahora comprueba el frontend estatico en `/` (HTTP 200) y el JSON del backend en
+  `/api/`; antes usaba `python3 -m json.tool` sobre `/` que devuelve HTML, causando
+  `Expecting value: line 1 column 1 (char 0)` y exit code 1
+
 ## [1.7.0] - 2026-06-25
 
 ### Fixed

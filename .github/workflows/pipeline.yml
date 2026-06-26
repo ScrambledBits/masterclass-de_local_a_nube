@@ -158,8 +158,9 @@ jobs:
           for i in {1..12}; do
             if curl -s -o /dev/null -w "%{http_code}" \
                 http://${{ needs.infra.outputs.frontend_ip }}/ | grep -q "200"; then
-              echo "[OK] App respondiendo en http://${{ needs.infra.outputs.frontend_ip }}/"
-              curl -s http://${{ needs.infra.outputs.frontend_ip }}/ | python3 -m json.tool
+              echo "[OK] Frontend estatico respondiendo en http://${{ needs.infra.outputs.frontend_ip }}/"
+              echo "[OK] Backend API (via proxy Nginx):"
+              curl -s http://${{ needs.infra.outputs.frontend_ip }}/api/ | python3 -m json.tool
               exit 0
             fi
             echo "Intento $i/12: esperando 10 segundos..."
