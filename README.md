@@ -109,7 +109,7 @@ La URL de la app aparece en los logs del job `config`:
 Para evitar costos cuando el demo termina, desde GitHub Actions:
 
 1. Ir a **Actions → Pipeline CI/CD → Run workflow**
-2. Escribir `destruir` en el campo de confirmacion
+2. Marcar el checkbox "Confirmar destruccion"
 3. Click **Run workflow**
 
 O localmente con acceso a AWS:

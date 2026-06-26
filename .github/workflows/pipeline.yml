@@ -2,13 +2,15 @@
 # Este archivo es el "Robot" de la masterclass.
 #
 # Arquitectura del pipeline:
-#   Job 1 (infra):    Terraform construye la infraestructura en AWS
-#   Job 2 (config):   Ansible configura los servidores (depende de infra)
-#   Job 3 (destruir): Elimina toda la infraestructura (solo activacion manual)
+#   Job 1 (infra):    Terraform construye la infraestructura en AWS       [solo en push]
+#   Job 2 (config):   Ansible configura los servidores (depende de infra) [solo en push]
+#   Job 3 (destruir): Elimina toda la infraestructura                     [solo manual]
 #
-# Los jobs infra y config son secuenciales: no puedes configurar servidores
-# que todavia no existen. El 'needs: [infra]' en config lo garantiza.
-# El job destruir se activa via workflow_dispatch escribiendo "destruir".
+# Separacion de responsabilidades:
+#   push a main     -> corre infra + config (construir)
+#   workflow_dispatch -> corre SOLO destruir (destruir)
+# Esto evita que infra y destruir corran en paralelo y se bloqueen mutuamente
+# via el Terraform state lock en S3.
 
 name: "Pipeline CI/CD: Masterclass Terraform + Ansible"
 
@@ -18,10 +20,11 @@ on:
       - main  # El pipeline se activa solo con cambios en la rama principal
   workflow_dispatch:
     inputs:
-      destruir:
-        description: "Escribe 'destruir' para eliminar toda la infraestructura de AWS"
+      confirmar:
+        description: "Marcar para confirmar la destruccion de toda la infraestructura AWS"
         required: true
-        default: ""
+        type: boolean
+        default: false
 
 jobs:
   # ============================================================
@@ -31,6 +34,7 @@ jobs:
   infra:
     name: "Fase 1: Provisionar Infraestructura (Terraform)"
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
 
     # Los outputs permiten pasar datos entre jobs.
     # Sin esto, 'config' no sabría a qué IPs conectarse.
@@ -168,13 +172,13 @@ jobs:
 
   # ============================================================
   # JOB 3: DESTRUIR INFRAESTRUCTURA (activacion manual)
-  # Uso: Actions -> Run workflow -> escribir "destruir" en el campo
+  # Uso: Actions -> Pipeline CI/CD -> Run workflow -> marcar checkbox -> Run workflow
   # Proposito: evitar costos de AWS cuando el demo ha terminado
   # ============================================================
   destruir:
     name: "Fase 3: Destruir Infraestructura (Manual)"
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.destruir == 'destruir'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirmar == 'true'
 
     steps:
       - name: Checkout del código fuente
