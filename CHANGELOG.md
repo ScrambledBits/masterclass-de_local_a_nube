@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0] - 2026-06-25
+
+### Fixed
+- `ansible/roles/frontend/templates/nginx.conf.j2`: agregados `root /var/www/html`,
+  `try_files` para archivos estaticos, y `location /api/` con proxy al backend;
+  antes solo habia un proxy inverso total que enviaba todo al backend
+- `ansible/roles/frontend/tasks/main.yml`: nueva tarea copia `frontend/index.html`
+  a `/var/www/html/index.html` en el servidor antes de recargar Nginx
+- `.github/workflows/pipeline.yml`: heredocs con contenido sin indentar reemplazados
+  por `printf`; las lineas `Host ...` e `[frontend]` al nivel 0 rompian el parse YAML
+  del runner de GitHub Actions
+
 ## [1.6.0] - 2026-06-25
 
 ### Changed

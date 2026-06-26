@@ -9,7 +9,16 @@
     state: present
   become: yes
 
-- name: Desplegar configuración de Nginx como proxy inverso
+- name: Copiar frontend estatico al servidor
+  copy:
+    src: "{{ playbook_dir }}/../frontend/index.html"
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  become: yes
+
+- name: Desplegar configuración de Nginx
   template:
     src: nginx.conf.j2
     dest: /etc/nginx/sites-available/backend_proxy
